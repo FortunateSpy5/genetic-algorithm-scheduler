@@ -1,9 +1,9 @@
 import random
 
 
-class Info:
-    def __init__(self, data=None):
-        default = {
+class Data:
+    def __init__(self):
+        self.data = {
             "institute": "RCC Institute of Information Technology",
             "days_per_week": 5,
             "slots_per_day": 4,
@@ -12,7 +12,7 @@ class Info:
             "departments": {
                 "CSE": {
                     "section_count": 2,
-                    "sections": ["5A, 5B"],
+                    "sections": ["5A", "5B"],
                     "courses": {
                         "ESC-501": {
                             "name": "Software Engineering",
@@ -53,14 +53,25 @@ class Info:
                 }
             }
         }
-        if data is None:
-            self.data = default
-        else:
+
+    def get_data(self, data):
+        if data is not None:
             self.data = data
 
 
-class Schedule:
+class Population:
     def __init__(self):
+        self.schedule = None
+
+    def create_population(self):
+        data = Data().data
+        self.schedule = Schedule(data["institute"])
+        self.schedule.create_schedule(data)
+
+
+class Schedule:
+    def __init__(self, name):
+        self.institute_name = name
         self.data = None
         self.days_per_week = None
         self.slots_per_day = None
@@ -69,8 +80,8 @@ class Schedule:
         self.department_count = None
         self.departments = []
 
-    def create_schedule(self):
-        self.data = Info().data()
+    def create_schedule(self, data):
+        self.data = data
         self.days_per_week = self.data["days_per_week"]
         self.slots_per_day = self.data["slots_per_day"]
         self.total_slots = self.slots_per_day * self.days_per_week
@@ -82,7 +93,8 @@ class Schedule:
             self.departments.append(new_department)
 
     def generate_schedule(self):
-        for department in range(len(self.departments)):
+        """
+                for department in range(len(self.departments)):
             self.timetable.append([])
             classes = []
             for course in self.departments[department].courses:
@@ -108,6 +120,7 @@ class Schedule:
                         c += 1
                     print()
 
+        """
 
 class Department:
     def __init__(self, name):
@@ -127,15 +140,25 @@ class Section:
     def __init__(self, name):
         self.name = name
         self.courses = []
+        self.schedule = None
 
     def create_section(self, courses_dict):
-        pass
+        for course_code, course_data in courses_dict.items():
+            new_course = Course(course_code)
+            new_course.create_course(course_data["name"], course_data["teacher"], course_data["class_count"])
+            self.courses.append(new_course)
+
 
 class Course:
-    def __init__(self, name, code, teachers, class_count):
-        self.name = name
+    def __init__(self, code):
         self.code = code
-        self.teacher = teachers
+        self.name = None
+        self.teacher = None
+        self.class_count = None
+
+    def create_course(self, name, teacher, class_count):
+        self.name = name
+        self.teacher = teacher
         self.class_count = class_count
 
 
@@ -146,20 +169,10 @@ class Class:
         self.slot = slot
 
 
-class Teacher:
-    def __init__(self, name):
-        self.name = name
-
-
-class Population:
-    pass
-
-
 class GeneticAlgorithm:
     pass
 
 
 if __name__ == '__main__':
-    obj = Schedule()
-    obj.create_departments()
-    obj.generate_schedule()
+    obj = Population()
+    obj.create_population()
