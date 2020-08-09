@@ -66,12 +66,12 @@ class Schedule:
                 classes.append("Break")
             self.timetable[department] = []
             for j in range(len(self.departments[department].sections)):
-                self.timetable[department].append(random.shuffle(classes))
+                random.shuffle(classes)
+                self.timetable[department].append(classes.copy())
         for department in range(len(self.departments)):
             print(f"Department: {self.departments[department].name}")
-            print()
             for j in range(len(self.departments[department].sections)):
-                print(f"Section: {self.departments[department].sections[j]}")
+                print(f"\nSection: {self.departments[department].sections[j]}")
                 c = 0
                 for day in range(self.days):
                     for slot in range(self.slots_per_day):
@@ -79,6 +79,7 @@ class Schedule:
                             print("Break", end="\t\t")
                         else:
                             print(self.timetable[department][j][c].course.name, end="\t\t")
+                        c += 1
                     print()
 
 
