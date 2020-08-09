@@ -12,42 +12,86 @@ class Data:
             "departments": {
                 "CSE": {
                     "section_count": 2,
-                    "sections": ["5A", "5B"],
-                    "courses": {
-                        "ESC-501": {
-                            "name": "Software Engineering",
-                            "teacher": ["Mrs. Monica Singh"],
-                            "class_count": 3
+                    "sections": {
+                        "5A": {
+                            "course_count": 7,
+                            "courses": {
+                                "ESC-501": {
+                                    "name": "Software Engineering",
+                                    "teacher": ["Mrs. Monica Singh"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-501": {
+                                    "name": "Compiler Design",
+                                    "teacher": ["Dr. Anup Kumar Kolya"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-502": {
+                                    "name": "Operating System",
+                                    "teacher": ["Mr. Harinandan Tunga"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-503": {
+                                    "name": "Object Oriented Programming",
+                                    "teacher": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "class_count": 3
+                                },
+                                "PEC-IT-501": {
+                                    "name": "Theory of Computation / Computer Graphics",
+                                    "teacher": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "class_count": 3
+                                },
+                                "MC-CS-501": {
+                                    "name": "Constitution of India",
+                                    "teacher": ["Dr. Sadhan Kumar Dey"],
+                                    "class_count": 2
+                                },
+                                "HS-MC-501": {
+                                    "name": "Introduction to Industrial Management",
+                                    "teacher": ["Mrs. Jhuma Ray"],
+                                    "class_count": 2
+                                }
+                            }
                         },
-                        "PCC-CS-501": {
-                            "name": "Compiler Design",
-                            "teacher": ["Dr. Anup Kumar Kolya"],
-                            "class_count": 3
-                        },
-                        "PCC-CS-502": {
-                            "name": "Operating System",
-                            "teacher": ["Mr. Harinandan Tunga"],
-                            "class_count": 3
-                        },
-                        "PCC-CS-503": {
-                            "name": "Object Oriented Programming",
-                            "teacher": ["Mr. Arup Kumar Bhattacharjee"],
-                            "class_count": 3
-                        },
-                        "PEC-IT-501": {
-                            "name": "Theory of Computation / Computer Graphics",
-                            "teacher": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
-                            "class_count": 3
-                        },
-                        "MC-CS-501": {
-                            "name": "Constitution of India",
-                            "teacher": ["Dr. Sadhan Kumar Dey"],
-                            "class_count": 2
-                        },
-                        "HS-MC-501": {
-                            "name": "Introduction to Industrial Management",
-                            "teacher": ["Mrs. Jhuma Ray"],
-                            "class_count": 2
+                        "5B": {
+                            "course_count": 7,
+                            "courses": {
+                                "ESC-501": {
+                                    "name": "Software Engineering",
+                                    "teacher": ["Mrs. Monica Singh"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-501": {
+                                    "name": "Compiler Design",
+                                    "teacher": ["Dr. Anup Kumar Kolya"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-502": {
+                                    "name": "Operating System",
+                                    "teacher": ["Mr. Harinandan Tunga"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-503": {
+                                    "name": "Object Oriented Programming",
+                                    "teacher": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "class_count": 3
+                                },
+                                "PEC-IT-501": {
+                                    "name": "Theory of Computation / Computer Graphics",
+                                    "teacher": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "class_count": 3
+                                },
+                                "MC-CS-501": {
+                                    "name": "Constitution of India",
+                                    "teacher": ["Dr. Sadhan Kumar Dey"],
+                                    "class_count": 2
+                                },
+                                "HS-MC-501": {
+                                    "name": "Introduction to Industrial Management",
+                                    "teacher": ["Mrs. Jhuma Ray"],
+                                    "class_count": 2
+                                }
+                            }
                         }
                     }
                 }
@@ -148,23 +192,28 @@ class Department:
 
     def create_department(self, data):
         self.section_count = data["section_count"]
-        for section_name in data["sections"]:
+        for section_name, section_data in data["sections"].items():
             new_section = Section(section_name)
-            new_section.create_section(data["courses"])
+            new_section.create_section(section_data)
             self.sections.append(new_section)
 
 
 class Section:
     def __init__(self, name):
         self.name = name
+        self.course_count = None
         self.courses = []
-        self.schedule = None
+        self.classes = None
 
-    def create_section(self, courses_dict):
-        for course_code, course_data in courses_dict.items():
+    def create_section(self, data):
+        self.course_count = data["course_count"]
+        for course_code, course_data in data["courses"].items():
             new_course = Course(course_code)
             new_course.create_course(course_data["name"], course_data["teacher"], course_data["class_count"])
             self.courses.append(new_course)
+
+    def get_random_class(self):
+        pass
 
 
 class Course:
@@ -190,3 +239,4 @@ class Class:
 if __name__ == '__main__':
     obj = GeneticAlgorithm()
     obj.genetic_algorithm(Data().data)
+    print(1)
