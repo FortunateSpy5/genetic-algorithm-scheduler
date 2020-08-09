@@ -5,6 +5,9 @@ class Info:
     def __init__(self, data=None):
         default = {
             "institute": "RCC Institute of Information Technology",
+            "days_per_week": 5,
+            "slots_per_day": 4,
+            "time_per_slot": 45,
             "department_count": 1,
             "departments": {
                 "CSE": {
@@ -57,17 +60,25 @@ class Info:
 
 
 class Schedule:
-    def __init__(self, days=5, slots_per_day=4):
-        self.days = days
-        self.slots_per_day = slots_per_day
-        self.total_slots = self.slots_per_day * self.days
-        self.time_per_class = None
+    def __init__(self):
+        self.data = Info().data()
+        self.days_per_week = self.data["days_per_week"]
+        self.slots_per_day = self.data["slots_per_day"]
+        self.total_slots = self.slots_per_day * self.days_per_week
+        self.time_per_slot = self.data["time_per_slot"]
+        self.department_count = self.data["department_count"]
         self.departments = []
-        self.department_count = 0
 
     def create_departments(self):
-        pass
-
+        for department_name, department_data in self.data["departments"].items():
+            new_department = Department(department_name)
+            new_department.section_count = department_data["section_count"]
+            for section_name in department_data["sections"]:
+                new_section = Section(section_name)
+                new_section.create_section(department_data["courses"])
+                new_department.sections.append(new_section)
+            self.departments.append(new_department)
+    
     def generate_schedule(self):
         for department in range(len(self.departments)):
             self.timetable.append([])
@@ -99,13 +110,17 @@ class Schedule:
 class Department:
     def __init__(self, name):
         self.name = name
-        self.courses = []
-        self.sections = []
         self.section_count = None
+        self.sections = []
+
 
 class Section:
     def __init__(self, name):
         self.name = name
+        self.courses = []
+
+    def create_section(self, courses_dict):
+        pass
 
 class Course:
     def __init__(self, name, code, teachers, class_count):
