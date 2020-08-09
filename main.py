@@ -61,24 +61,26 @@ class Info:
 
 class Schedule:
     def __init__(self):
+        self.data = None
+        self.days_per_week = None
+        self.slots_per_day = None
+        self.total_slots = None
+        self.time_per_slot = None
+        self.department_count = None
+        self.departments = []
+
+    def create_schedule(self):
         self.data = Info().data()
         self.days_per_week = self.data["days_per_week"]
         self.slots_per_day = self.data["slots_per_day"]
         self.total_slots = self.slots_per_day * self.days_per_week
         self.time_per_slot = self.data["time_per_slot"]
         self.department_count = self.data["department_count"]
-        self.departments = []
-
-    def create_departments(self):
         for department_name, department_data in self.data["departments"].items():
             new_department = Department(department_name)
-            new_department.section_count = department_data["section_count"]
-            for section_name in department_data["sections"]:
-                new_section = Section(section_name)
-                new_section.create_section(department_data["courses"])
-                new_department.sections.append(new_section)
+            new_department.create_department(department_data)
             self.departments.append(new_department)
-    
+
     def generate_schedule(self):
         for department in range(len(self.departments)):
             self.timetable.append([])
@@ -112,6 +114,13 @@ class Department:
         self.name = name
         self.section_count = None
         self.sections = []
+
+    def create_department(self, data):
+        self.section_count = data["section_count"]
+        for section_name in data["sections"]:
+            new_section = Section(section_name)
+            new_section.create_section(data["courses"])
+            self.sections.append(new_section)
 
 
 class Section:
