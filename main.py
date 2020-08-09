@@ -59,17 +59,34 @@ class Data:
             self.data = data
 
 
-class Population:
+class GeneticAlgorithm:
     def __init__(self):
-        self.schedule = None
+        self.population = None
+        self.mutate_chance = 0.05
+        self.population_size = 1
 
-    def create_population(self):
-        data = Data().data
-        self.schedule = Schedule(data["institute"])
-        self.schedule.create_schedule(data)
+    def genetic_algorithm(self, data):
+        self.population = Population(self.population_size)
+        self.population.initialize(data)
+        self.population.create_population(data)
 
 
-class Schedule:
+class Population:
+    def __init__(self, population_size):
+        self.population_size = population_size
+        self.schedules = []
+        self.institute = None
+
+    def initialize(self, data):
+        self.institute = Institute(data["institute"])
+        self.institute.create_schedule(data)
+
+    def create_population(self, data):
+        for i in range(self.population_size):
+            pass
+
+
+class Institute:
     def __init__(self, name):
         self.institute_name = name
         self.data = None
@@ -122,6 +139,7 @@ class Schedule:
 
         """
 
+
 class Department:
     def __init__(self, name):
         self.name = name
@@ -169,10 +187,6 @@ class Class:
         self.slot = slot
 
 
-class GeneticAlgorithm:
-    pass
-
-
 if __name__ == '__main__':
-    obj = Population()
-    obj.create_population()
+    obj = GeneticAlgorithm()
+    obj.genetic_algorithm(Data().data)
