@@ -98,7 +98,7 @@ class Data:
             }
         }
 
-    def get_data(self, data):
+    def set_data(self, data):
         if data is not None:
             self.data = data
 
