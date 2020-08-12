@@ -107,7 +107,7 @@ class GeneticAlgorithm:
     def __init__(self):
         self.population = None
         self.mutate_chance = 0.05
-        self.population_size = 1
+        self.population_size = 10
         self.elite_size = 0.2
         self.discard = 0.4
 
@@ -115,6 +115,17 @@ class GeneticAlgorithm:
         self.population = Population(self.population_size)
         self.population.initialize(data)
         self.population.create_population(data)
+        self.sort_population()
+        self.display_rank()
+
+    def create_population(self):
+        self.population.create_population()
+
+    def sort_population(self):
+        self.population.sort_population()
+
+    def display_rank(self):
+        self.population.display_rank()
 
 
 class Population:
@@ -123,6 +134,7 @@ class Population:
         self.schedules = []
         self.institute = None
         self.conflicts = None
+        self.rank = []
 
     def initialize(self, data):
         self.institute = Institute(data["institute"])
@@ -146,6 +158,14 @@ class Population:
                                     self.institute.teacher_schedule[pop_index][i].add(teacher)
                     self.display_schedule(section, pop_index)
                     self.conflicts[pop_index] += section.get_course_conflicts(pop_index)
+
+    def sort_population(self):
+        self.rank = [i for i in range(self.population_size)]
+        self.rank = [x for _, x in sorted(zip(self.conflicts, self.rank))]
+
+    def display_rank(self):
+        print(self.conflicts)
+        print(self.rank)
     
     def display_schedule(self, section, pop_index):
         index = 0
