@@ -106,56 +106,94 @@ class GeneticAlgorithm:
     def __init__(self):
         self.population = None
         self.mutate_chance = 0.01
-        self.population_size = 10
+        self.population_size = 100
         self.elite_size = 0.2
+        self.max_generation = 10000
+        self.current_generation = 0
 
     def genetic_algorithm(self, data):
         self.population = Population(self.population_size)
         self.population.initialize_data(data)
+
         self.population.initialize_population()
         self.population.calculate_fitness()
-        self.population.display_population()
-
-    def initialize_population(self):
-        self.population.initialize_population()
-
-    def sort_population(self):
         self.population.sort_population()
+        # self.population.display_generation(self.current_generation)
+        self.current_generation += 1
 
-    def display_rank(self):
-        self.population.display_rank()
+        while self.current_generation <= self.max_generation:
+            self.population.new_generation(self.elite_size, self.mutate_chance)
+            self.population.calculate_fitness()
+            self.population.sort_population()
+
+            if self.population.population[self.population.rank[0]].conflicts == 0:
+                self.population.display_generation(self.current_generation)
+                return
+            self.current_generation += 1
 
 
 class Population:
     def __init__(self, population_size):
         self.population_size = population_size
         self.population = []
+        self.new_population = []
         self.Data = None
         self.rank = []
+        self.population_fitness = []
 
     def initialize_data(self, data):
         self.Data = Data(data["institute"])
         self.Data.initialize(data)
 
     def initialize_population(self):
+        self.rank = list(range(self.population_size))
         for i in range(self.population_size):
             new_gene = Genes()
             new_gene.initialize(self.Data)
             self.population.append(new_gene)
 
-    def display_population(self):
-        for i in range(self.population_size):
-            print(f"\nIndex: {i}")
-            self.population[i].display()
+    def display_generation(self, generation):
+        print(f"\n\nGeneration: {generation}\nMaximum Fitness: {self.population[self.rank[0]].fitness}\nConflicts: {self.population[self.rank[0]].conflicts}")
+        self.population[self.rank[0]].display()
 
     def calculate_fitness(self):
+        sum_conflict = 0
         for i in range(self.population_size):
             self.population[i].calculate_conflicts()
+            sum_conflict += self.population[i].conflicts
+        for i in range(self.population_size):
+            self.population[i].calculate_fitness(sum_conflict)
+        self.population_fitness = [i.fitness for i in self.population]
+
+    def sort_population(self):
+        self.rank.sort(key=lambda x: self.population_fitness[x], reverse=True)
+
+    def new_generation(self, elite_size, mutate_chance):
+        elite_size *= self.population_size
+        index = 0
+        while index < elite_size:
+            self.new_population.append(self.population[self.rank[index]])
+            index += 1
+        while index < self.population_size:
+            self.new_population.append(self.crossover(mutate_chance))
+            index += 1
+        self.population = self.new_population
+        self.new_population = []
+
+    def crossover(self, mutate_chance):
+        gene_a = random.choices(self.population, weights=self.population_fitness, k=1)[0]
+        gene_b = random.choices(self.population, weights=self.population_fitness, k=1)[0]
+        while gene_b == gene_a:
+            gene_b = random.choices(self.population, weights=self.population_fitness, k=1)[0]
+
+        split = random.randint(1, gene_a.Data.total_slots - 2)
+        new_gene = Genes()
+        new_gene.gene_crossover(gene_a, gene_b, split, mutate_chance)
+        return new_gene
 
 
 class Genes:
     def __init__(self):
-        self.teacher_schedule = None
         self.schedule = None
         self.Data = None
         self.fitness = 0
@@ -167,10 +205,19 @@ class Genes:
 
     def display(self):
         self.Data.display_institute(self.schedule)
-        print(f"\nConflicts: {self.conflicts}")
 
     def calculate_conflicts(self):
         self.conflicts = self.Data.calculate_conflicts(self.schedule)
+
+    def calculate_fitness_1(self, sum_conflicts):
+        self.fitness = sum_conflicts / (self.conflicts + 1)
+
+    def calculate_fitness(self, sum_conflicts):
+        self.fitness = sum_conflicts / (self.conflicts ** 2 + 1)
+
+    def gene_crossover(self, gene_a, gene_b, split, mutate_chance):
+        self.Data = gene_a.Data
+        self.schedule = self.Data.get_crossover_schedule(gene_a.schedule, gene_b.schedule, split, mutate_chance)
 
 
 class Data:
@@ -228,6 +275,13 @@ class Data:
                                 teacher_schedule[k].add(teacher)
         return conflicts
 
+    def get_crossover_schedule(self, gene_a, gene_b, split, mutate_chance):
+        schedule = []
+        for i in range(self.department_count):
+            department_schedule = self.departments[i].get_crossover_department_schedule(self.total_slots, gene_a[i], gene_b[i], split, mutate_chance)
+            schedule.append(department_schedule)
+        return schedule
+
 
 class Department:
     def __init__(self, name):
@@ -250,7 +304,7 @@ class Department:
         return department_schedule
 
     def display_department(self, schedule, days_per_week, slots_per_day):
-        print(f"Department: {self.name}")
+        print(f"\nDepartment: {self.name}")
         for i in range(self.section_count):
             self.sections[i].display_section(schedule[i], days_per_week, slots_per_day)
     
@@ -259,6 +313,13 @@ class Department:
         for i in range(self.section_count):
             conflicts += self.sections[i].calculate_conflicts(schedule[i])
         return conflicts
+
+    def get_crossover_department_schedule(self, total_slots, gene_a, gene_b, split, mutate_chance):
+        department_schedule = []
+        for i in range(self.section_count):
+            section_schedule = self.sections[i].get_crossover_section_schedule(total_slots, gene_a[i], gene_b[i], split, mutate_chance)
+            department_schedule.append(section_schedule)
+        return department_schedule
 
 
 class Section:
@@ -303,6 +364,18 @@ class Section:
         for course in self.courses:
             conflicts += abs(schedule.count(course) - course.class_count)
         return conflicts
+
+    def get_crossover_section_schedule(self, total_slots, gene_a, gene_b, split, mutate_chance):
+        section_schedule = []
+        for i in range(total_slots):
+            if random.random() < mutate_chance:
+                section_schedule.append(self.get_random_course())
+            else:
+                if i < split:
+                    section_schedule.append(gene_a[i])
+                else:
+                    section_schedule.append(gene_b[i])
+        return section_schedule
 
 
 class Course:
