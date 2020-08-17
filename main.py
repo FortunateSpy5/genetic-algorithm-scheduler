@@ -2,7 +2,7 @@ import random
 import time
 
 
-class Data:
+class Info:
     def __init__(self):
         self.data = {
             "institute": "RCC Institute of Information Technology",
@@ -98,7 +98,7 @@ class Data:
             }
         }
 
-    def set_data(self, data):
+    def set_info(self, data):
         if data is not None:
             self.data = data
 
@@ -106,20 +106,18 @@ class Data:
 class GeneticAlgorithm:
     def __init__(self):
         self.population = None
-        self.mutate_chance = 0.05
-        self.population_size = 10
+        self.mutate_chance = 0.01
+        self.population_size = 1
         self.elite_size = 0.2
-        self.discard = 0.4
 
     def genetic_algorithm(self, data):
         self.population = Population(self.population_size)
-        self.population.initialize(data)
-        self.population.create_population(data)
-        self.sort_population()
-        self.display_rank()
+        self.population.initialize_data(data)
+        self.population.initialize_population(data)
+        self.population.display_population()
 
-    def create_population(self):
-        self.population.create_population()
+    def initialize_population(self):
+        self.population.initialize_population()
 
     def sort_population(self):
         self.population.sort_population()
@@ -131,70 +129,65 @@ class GeneticAlgorithm:
 class Population:
     def __init__(self, population_size):
         self.population_size = population_size
-        self.schedules = []
-        self.institute = None
+        self.population = []
+        self.Data = None
         self.conflicts = None
         self.rank = []
 
-    def initialize(self, data):
-        self.institute = Institute(data["institute"])
-        self.institute.create_schedule(data)
+    def initialize_data(self, data):
+        self.Data = Data(data["institute"])
+        self.Data.initialize(data)
         self.conflicts = [0] * self.population_size
 
-    def create_population(self, data):
-        self.institute.teacher_schedule = [[set() for i in range(self.institute.total_slots)] for i in range(self.population_size)]
-        for pop_index in range(self.population_size):
-            for department in self.institute.departments:
-                for section in department.sections:
-                    section.schedule.append([])
-                    for i in range(self.institute.total_slots):
-                        random_course = section.get_random_course()
-                        section.schedule[pop_index].append(random_course)
-                        if random_course.teacher is not None:
-                            for teacher in random_course.teacher:
-                                if teacher in self.institute.teacher_schedule[pop_index][i]:
-                                    self.conflicts[pop_index] += 1
-                                else:
-                                    self.institute.teacher_schedule[pop_index][i].add(teacher)
-                    self.display_schedule(section, pop_index)
-                    self.conflicts[pop_index] += section.get_course_conflicts(pop_index)
+    def initialize_population(self, data):
+        for i in range(self.population_size):
+            new_gene = Genes()
+            new_gene.initialize(self.Data)
+            self.population.append(new_gene)
+
+    def display_population(self):
+        for i in range(self.population_size):
+            print(f"\nIndex: {i}")
+            self.population[i].display()
 
     def sort_population(self):
         self.rank = [i for i in range(self.population_size)]
         self.rank = [x for _, x in sorted(zip(self.conflicts, self.rank))]
 
-    def display_rank(self):
-        print(self.conflicts)
-        print(self.rank)
-    
-    def display_schedule(self, section, pop_index):
-        index = 0
-        print(f"\n{section.name}")
-        for day in range(self.institute.days_per_week):
-            for slots in range(self.institute.slots_per_day):
-                print(f"{section.schedule[pop_index][index].code:<20}", end="")
-                index += 1
-            print()
-
     def calculate_teacher_conflict(self, pop_index):
-        for day in range(self.institute.days_per_week):
-            for slots in range(self.institute.slots_per_day):
+        for day in range(self.Data.days_per_week):
+            for slots in range(self.Data.slots_per_day):
                 pass
 
 
-class Institute:
+class Genes:
+    def __init__(self):
+        self.teacher_schedule = None
+        self.schedule = None
+        self.Data = None
+
+    def initialize(self, data):
+        self.Data = data
+        self.teacher_schedule = [set() for i in range(self.Data.total_slots)]
+        self.schedule = self.Data.get_random_schedule()
+
+    def display(self):
+        self.Data.display_institute(self.schedule)
+
+
+class Data:
     def __init__(self, name):
         self.days_per_week = None
         self.slots_per_day = None
         self.total_slots = None
-        self.institute_name = name
+        self.Data_name = name
         self.data = None
         self.time_per_slot = None
         self.department_count = None
         self.departments = []
         self.teacher_schedule = []
 
-    def create_schedule(self, data):
+    def initialize(self, data):
         self.data = data
         self.days_per_week = self.data["days_per_week"]
         self.slots_per_day = self.data["slots_per_day"]
@@ -202,8 +195,19 @@ class Institute:
         self.department_count = self.data["department_count"]
         for department_name, department_data in self.data["departments"].items():
             new_department = Department(department_name)
-            new_department.create_department(department_data, self.total_slots)
+            new_department.initialize_department(department_data, self.total_slots)
             self.departments.append(new_department)
+
+    def get_random_schedule(self):
+        schedule = []
+        for i in range(self.department_count):
+            department_schedule = self.departments[i].get_random_department_schedule(self.total_slots)
+            schedule.append(department_schedule)
+        return schedule
+
+    def display_institute(self, schedule):
+        for i in range(self.department_count):
+            self.departments[i].display_department(schedule[i], self.days_per_week, self.slots_per_day)
 
 
 class Department:
@@ -212,12 +216,24 @@ class Department:
         self.section_count = None
         self.sections = []
 
-    def create_department(self, data, total_slots):
+    def initialize_department(self, data, total_slots):
         self.section_count = data["section_count"]
         for section_name, section_data in data["sections"].items():
             new_section = Section(section_name)
-            new_section.create_section(section_data, total_slots)
+            new_section.initialize_section(section_data, total_slots)
             self.sections.append(new_section)
+
+    def get_random_department_schedule(self, total_slots):
+        department_schedule = []
+        for i in range(self.section_count):
+            section_schedule = self.sections[i].get_random_section_schedule(total_slots)
+            department_schedule.append(section_schedule)
+        return department_schedule
+
+    def display_department(self, schedule, days_per_week, slots_per_day):
+        print(f"Department: {self.name}")
+        for i in range(self.section_count):
+            self.sections[i].display_section(schedule[i], days_per_week, slots_per_day)
 
 
 class Section:
@@ -226,18 +242,17 @@ class Section:
         self.name = name
         self.course_count = None
         self.courses = []
-        self.schedule = []
 
-    def create_section(self, data, total_slots):
+    def initialize_section(self, data, total_slots):
         self.course_count = data["course_count"]
         for course_code, course_data in data["courses"].items():
             new_course = Course(course_code)
-            new_course.create_course(course_data["name"], course_data["teacher"], course_data["class_count"])
+            new_course.initialize_course(course_data["name"], course_data["teacher"], course_data["class_count"])
             self.total_classes += new_course.class_count
             self.courses.append(new_course)
         if self.total_classes < total_slots:
             new_course = Course("Break")
-            new_course.create_course(None, None, total_slots - self.total_classes)
+            new_course.initialize_course(None, None, total_slots - self.total_classes)
             self.courses.append(new_course)
 
     def get_random_course(self):
@@ -249,6 +264,21 @@ class Section:
             conflicts += abs(course.class_count - self.schedule[pop_index].count(course))
         return conflicts
 
+    def get_random_section_schedule(self, total_slots):
+        section_schedule = []
+        for i in range(total_slots):
+            section_schedule.append(self.get_random_course())
+        return section_schedule
+
+    def display_section(self, schedule, days_per_week, slots_per_day):
+        index = 0
+        print(f"\nSection: {self.name}")
+        for i in range(days_per_week):
+            for j in range(slots_per_day):
+                print(f"{schedule[index].code:<20}", end="")
+                index += 1
+            print()
+
 
 class Course:
     def __init__(self, code):
@@ -257,7 +287,7 @@ class Course:
         self.teacher = None
         self.class_count = None
 
-    def create_course(self, name, teacher, class_count):
+    def initialize_course(self, name, teacher, class_count):
         self.name = name
         self.teacher = teacher
         self.class_count = class_count
@@ -265,5 +295,5 @@ class Course:
 
 if __name__ == '__main__':
     obj = GeneticAlgorithm()
-    obj.genetic_algorithm(Data().data)
+    obj.genetic_algorithm(Info().data)
     print()
