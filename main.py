@@ -1,5 +1,4 @@
 import random
-import time
 
 
 class Info:
@@ -18,37 +17,37 @@ class Info:
                             "courses": {
                                 "ESC-501": {
                                     "name": "Software Engineering",
-                                    "teacher": ["Mrs. Monica Singh"],
+                                    "teachers": ["Mrs. Monica Singh"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-501": {
                                     "name": "Compiler Design",
-                                    "teacher": ["Dr. Anup Kumar Kolya"],
+                                    "teachers": ["Dr. Anup Kumar Kolya"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-502": {
                                     "name": "Operating System",
-                                    "teacher": ["Mr. Harinandan Tunga"],
+                                    "teachers": ["Mr. Harinandan Tunga"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-503": {
                                     "name": "Object Oriented Programming",
-                                    "teacher": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "teachers": ["Mr. Arup Kumar Bhattacharjee"],
                                     "class_count": 3
                                 },
                                 "PEC-IT-501": {
                                     "name": "Theory of Computation / Computer Graphics",
-                                    "teacher": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "teachers": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
                                     "class_count": 3
                                 },
                                 "MC-CS-501": {
                                     "name": "Constitution of India",
-                                    "teacher": ["Dr. Sadhan Kumar Dey"],
+                                    "teachers": ["Dr. Sadhan Kumar Dey"],
                                     "class_count": 2
                                 },
                                 "HS-MC-501": {
                                     "name": "Introduction to Industrial Management",
-                                    "teacher": ["Mrs. Jhuma Ray"],
+                                    "teachers": ["Mrs. Jhuma Ray"],
                                     "class_count": 2
                                 }
                             }
@@ -58,37 +57,37 @@ class Info:
                             "courses": {
                                 "ESC-501": {
                                     "name": "Software Engineering",
-                                    "teacher": ["Mrs. Monica Singh"],
+                                    "teachers": ["Mrs. Monica Singh"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-501": {
                                     "name": "Compiler Design",
-                                    "teacher": ["Dr. Anup Kumar Kolya"],
+                                    "teachers": ["Dr. Anup Kumar Kolya"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-502": {
                                     "name": "Operating System",
-                                    "teacher": ["Mr. Harinandan Tunga"],
+                                    "teachers": ["Mr. Harinandan Tunga"],
                                     "class_count": 3
                                 },
                                 "PCC-CS-503": {
                                     "name": "Object Oriented Programming",
-                                    "teacher": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "teachers": ["Mr. Arup Kumar Bhattacharjee"],
                                     "class_count": 3
                                 },
                                 "PEC-IT-501": {
                                     "name": "Theory of Computation / Computer Graphics",
-                                    "teacher": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "teachers": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
                                     "class_count": 3
                                 },
                                 "MC-CS-501": {
                                     "name": "Constitution of India",
-                                    "teacher": ["Dr. Sadhan Kumar Dey"],
+                                    "teachers": ["Dr. Sadhan Kumar Dey"],
                                     "class_count": 2
                                 },
                                 "HS-MC-501": {
                                     "name": "Introduction to Industrial Management",
-                                    "teacher": ["Mrs. Jhuma Ray"],
+                                    "teachers": ["Mrs. Jhuma Ray"],
                                     "class_count": 2
                                 }
                             }
@@ -107,13 +106,14 @@ class GeneticAlgorithm:
     def __init__(self):
         self.population = None
         self.mutate_chance = 0.01
-        self.population_size = 1
+        self.population_size = 10
         self.elite_size = 0.2
 
     def genetic_algorithm(self, data):
         self.population = Population(self.population_size)
         self.population.initialize_data(data)
-        self.population.initialize_population(data)
+        self.population.initialize_population()
+        self.population.calculate_fitness()
         self.population.display_population()
 
     def initialize_population(self):
@@ -131,15 +131,13 @@ class Population:
         self.population_size = population_size
         self.population = []
         self.Data = None
-        self.conflicts = None
         self.rank = []
 
     def initialize_data(self, data):
         self.Data = Data(data["institute"])
         self.Data.initialize(data)
-        self.conflicts = [0] * self.population_size
 
-    def initialize_population(self, data):
+    def initialize_population(self):
         for i in range(self.population_size):
             new_gene = Genes()
             new_gene.initialize(self.Data)
@@ -150,14 +148,9 @@ class Population:
             print(f"\nIndex: {i}")
             self.population[i].display()
 
-    def sort_population(self):
-        self.rank = [i for i in range(self.population_size)]
-        self.rank = [x for _, x in sorted(zip(self.conflicts, self.rank))]
-
-    def calculate_teacher_conflict(self, pop_index):
-        for day in range(self.Data.days_per_week):
-            for slots in range(self.Data.slots_per_day):
-                pass
+    def calculate_fitness(self):
+        for i in range(self.population_size):
+            self.population[i].calculate_conflicts()
 
 
 class Genes:
@@ -165,14 +158,19 @@ class Genes:
         self.teacher_schedule = None
         self.schedule = None
         self.Data = None
+        self.fitness = 0
+        self.conflicts = 0
 
     def initialize(self, data):
         self.Data = data
-        self.teacher_schedule = [set() for i in range(self.Data.total_slots)]
         self.schedule = self.Data.get_random_schedule()
 
     def display(self):
         self.Data.display_institute(self.schedule)
+        print(f"\nConflicts: {self.conflicts}")
+
+    def calculate_conflicts(self):
+        self.conflicts = self.Data.calculate_conflicts(self.schedule)
 
 
 class Data:
@@ -185,7 +183,6 @@ class Data:
         self.time_per_slot = None
         self.department_count = None
         self.departments = []
-        self.teacher_schedule = []
 
     def initialize(self, data):
         self.data = data
@@ -208,6 +205,28 @@ class Data:
     def display_institute(self, schedule):
         for i in range(self.department_count):
             self.departments[i].display_department(schedule[i], self.days_per_week, self.slots_per_day)
+
+    def calculate_conflicts(self, schedule):
+        conflicts = 0
+        for i in range(self.department_count):
+            conflicts += self.departments[i].calculate_conflicts(schedule[i])
+        conflicts += self.calculate_teacher_conflicts(schedule)
+        return conflicts
+    
+    def calculate_teacher_conflicts(self, schedule):
+        teacher_schedule = [set() for _ in range(self.total_slots)]
+        conflicts = 0
+        for i in range(self.department_count):
+            department = self.departments[i]
+            for j in range(department.section_count):
+                for k in range(self.total_slots):
+                    if schedule[i][j][k].code != "Break":
+                        for teacher in schedule[i][j][k].teachers:
+                            if teacher in teacher_schedule[k]:
+                                conflicts += 1
+                            else:
+                                teacher_schedule[k].add(teacher)
+        return conflicts
 
 
 class Department:
@@ -234,6 +253,12 @@ class Department:
         print(f"Department: {self.name}")
         for i in range(self.section_count):
             self.sections[i].display_section(schedule[i], days_per_week, slots_per_day)
+    
+    def calculate_conflicts(self, schedule):
+        conflicts = 0
+        for i in range(self.section_count):
+            conflicts += self.sections[i].calculate_conflicts(schedule[i])
+        return conflicts
 
 
 class Section:
@@ -247,7 +272,7 @@ class Section:
         self.course_count = data["course_count"]
         for course_code, course_data in data["courses"].items():
             new_course = Course(course_code)
-            new_course.initialize_course(course_data["name"], course_data["teacher"], course_data["class_count"])
+            new_course.initialize_course(course_data["name"], course_data["teachers"], course_data["class_count"])
             self.total_classes += new_course.class_count
             self.courses.append(new_course)
         if self.total_classes < total_slots:
@@ -257,12 +282,6 @@ class Section:
 
     def get_random_course(self):
         return random.choices(self.courses, weights=[course.class_count for course in self.courses], k=1)[0]
-
-    def get_course_conflicts(self, pop_index):
-        conflicts = 0
-        for course in self.courses:
-            conflicts += abs(course.class_count - self.schedule[pop_index].count(course))
-        return conflicts
 
     def get_random_section_schedule(self, total_slots):
         section_schedule = []
@@ -279,21 +298,26 @@ class Section:
                 index += 1
             print()
 
+    def calculate_conflicts(self, schedule):
+        conflicts = 0
+        for course in self.courses:
+            conflicts += abs(schedule.count(course) - course.class_count)
+        return conflicts
+
 
 class Course:
     def __init__(self, code):
         self.code = code
         self.name = None
-        self.teacher = None
+        self.teachers = None
         self.class_count = None
 
-    def initialize_course(self, name, teacher, class_count):
+    def initialize_course(self, name, teachers, class_count):
         self.name = name
-        self.teacher = teacher
+        self.teachers = teachers
         self.class_count = class_count
 
 
 if __name__ == '__main__':
     obj = GeneticAlgorithm()
     obj.genetic_algorithm(Info().data)
-    print()
