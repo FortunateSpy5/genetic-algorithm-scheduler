@@ -5,6 +5,7 @@ class Info:
     """
     This Class shows the structure of the information that is needed to generate the schedule.
     All the information needs to be valid.
+    data: The institute data in proper format.
     """
 
     def __init__(self):
@@ -199,6 +200,17 @@ class Info:
 
 
 class GeneticAlgorithm:
+    """
+    GeneticAlgorithm class is used to execute the genetic algorithm.
+
+    population: Population object, which represents the elements of current generation.
+    mutate_change: The probability of mutation of each gene (each class of the schedule).
+    population_size: The size of each generation population.
+    elite_size: The fraction of total population that will be passed to next generation without crossover or mutation.
+    max_generation: Generation at which program will be stopped if optimal output has not yet been reached.
+    current_generation: Store value of current generation.
+    """
+
     def __init__(self):
         self.population = None
         self.mutate_chance = 0.03
@@ -208,6 +220,12 @@ class GeneticAlgorithm:
         self.current_generation = 0
 
     def genetic_algorithm(self, data, display):
+        """
+        :param data: Object of class Info.
+        :param display: Boolean whether to display final schedule.
+        :return: Final schedule in proper format. (not yet implemented)
+        """
+
         self.population = Population(self.population_size)
         self.population.initialize_data(data)
         self.population.initialize_population()
@@ -226,7 +244,15 @@ class GeneticAlgorithm:
 
 
 class Population:
+    """
+
+    """
+
     def __init__(self, population_size):
+        """
+        :param population_size:
+        """
+
         self.population_size = population_size
         self.population = []
         self.new_population = []
