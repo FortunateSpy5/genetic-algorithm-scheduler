@@ -2,14 +2,104 @@ import random
 
 
 class Info:
+    """
+    This Class shows the structure of the information that is needed to generate the schedule.
+    All the information needs to be valid.
+    """
+
     def __init__(self):
         self.data = {
             "institute": "RCC Institute of Information Technology",
-            "department_count": 1,
+            "department_count": 2,
             "days_per_week": 5,
             "slots_per_day": 4,
             "departments": {
                 "CSE": {
+                    "section_count": 2,
+                    "sections": {
+                        "5A": {
+                            "course_count": 7,
+                            "courses": {
+                                "ESC-501": {
+                                    "name": "Software Engineering",
+                                    "teachers": ["Mrs. Monica Singh"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-501": {
+                                    "name": "Compiler Design",
+                                    "teachers": ["Dr. Anup Kumar Kolya"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-502": {
+                                    "name": "Operating System",
+                                    "teachers": ["Mr. Harinandan Tunga"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-503": {
+                                    "name": "Object Oriented Programming",
+                                    "teachers": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "class_count": 3
+                                },
+                                "PEC-IT-501": {
+                                    "name": "Theory of Computation / Computer Graphics",
+                                    "teachers": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "class_count": 3
+                                },
+                                "MC-CS-501": {
+                                    "name": "Constitution of India",
+                                    "teachers": ["Dr. Sadhan Kumar Dey"],
+                                    "class_count": 2
+                                },
+                                "HS-MC-501": {
+                                    "name": "Introduction to Industrial Management",
+                                    "teachers": ["Mrs. Jhuma Ray"],
+                                    "class_count": 2
+                                }
+                            }
+                        },
+                        "5B": {
+                            "course_count": 7,
+                            "courses": {
+                                "ESC-501": {
+                                    "name": "Software Engineering",
+                                    "teachers": ["Mrs. Monica Singh"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-501": {
+                                    "name": "Compiler Design",
+                                    "teachers": ["Dr. Anup Kumar Kolya"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-502": {
+                                    "name": "Operating System",
+                                    "teachers": ["Mr. Harinandan Tunga"],
+                                    "class_count": 3
+                                },
+                                "PCC-CS-503": {
+                                    "name": "Object Oriented Programming",
+                                    "teachers": ["Mr. Arup Kumar Bhattacharjee"],
+                                    "class_count": 3
+                                },
+                                "PEC-IT-501": {
+                                    "name": "Theory of Computation / Computer Graphics",
+                                    "teachers": ["Mr. Rajib Saha", "Sk. Mazharul Islam"],
+                                    "class_count": 3
+                                },
+                                "MC-CS-501": {
+                                    "name": "Constitution of India",
+                                    "teachers": ["Dr. Sadhan Kumar Dey"],
+                                    "class_count": 2
+                                },
+                                "HS-MC-501": {
+                                    "name": "Introduction to Industrial Management",
+                                    "teachers": ["Mrs. Jhuma Ray"],
+                                    "class_count": 2
+                                }
+                            }
+                        }
+                    }
+                },
+                "ECE": {
                     "section_count": 2,
                     "sections": {
                         "5A": {
@@ -98,6 +188,12 @@ class Info:
         }
 
     def set_info(self, data):
+        """
+        Call this function to overwrite default data.
+        :param data: Information in proper format as shown in default value for data.
+        :return: None
+        """
+
         if data is not None:
             self.data = data
 
@@ -105,30 +201,27 @@ class Info:
 class GeneticAlgorithm:
     def __init__(self):
         self.population = None
-        self.mutate_chance = 0.01
-        self.population_size = 100
-        self.elite_size = 0.2
-        self.max_generation = 10000
+        self.mutate_chance = 0.03
+        self.population_size = 500
+        self.elite_size = 0.25
+        self.max_generation = None
         self.current_generation = 0
 
-    def genetic_algorithm(self, data):
+    def genetic_algorithm(self, data, display):
         self.population = Population(self.population_size)
         self.population.initialize_data(data)
-
         self.population.initialize_population()
         self.population.calculate_fitness()
         self.population.sort_population()
-        # self.population.display_generation(self.current_generation)
         self.current_generation += 1
-
-        while self.current_generation <= self.max_generation:
+        while True:
             self.population.new_generation(self.elite_size, self.mutate_chance)
             self.population.calculate_fitness()
             self.population.sort_population()
-
             if self.population.population[self.population.rank[0]].conflicts == 0:
-                self.population.display_generation(self.current_generation)
-                return
+                if display:
+                    self.population.display_generation(self.current_generation)
+                break
             self.current_generation += 1
 
 
@@ -392,5 +485,6 @@ class Course:
 
 
 if __name__ == '__main__':
+    display_best = True
     obj = GeneticAlgorithm()
-    obj.genetic_algorithm(Info().data)
+    obj.genetic_algorithm(Info().data, display_best)
