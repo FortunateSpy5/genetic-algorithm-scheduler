@@ -1,0 +1,3 @@
+# Python Standard Library only
+# Requires Python >= 3.8
+# No external package dependencies required.
